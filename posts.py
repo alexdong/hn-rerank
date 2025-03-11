@@ -68,14 +68,13 @@ async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
     post_data = response.json()
     
     # Generate embedding for the post title if it has one
-    if post_data and 'title' in post_data:
-        post_data['embedding'] = generate_embedding(post_data['title'])
-        print(f"[INFO] Generated embedding for post {post_id}")
+    post_data['embedding'] = generate_embedding(post_data['title'])
+    print(f"[INFO] Generated embedding for post {post_id}")
     
+    # Build a Post object from post_data using Post(**post_data) and add `save_to_cache` method to Post class and refactor, ai!
     # Cache the response to a file - convert numpy array to list for JSON serialization
     json_data = post_data.copy()
-    if isinstance(json_data.get('embedding'), np.ndarray):
-        json_data['embedding'] = json_data['embedding'].tolist()
+    json_data['embedding'] = json_data['embedding'].tolist()
         
     with open(cache_file, "w") as f:
         json.dump(json_data, f)
