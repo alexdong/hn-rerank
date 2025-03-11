@@ -3,6 +3,8 @@ import time
 import asyncio
 import httpx
 import numpy as np
+import json
+import pathlib
 from typing import List, Dict, Any, Optional
 import openai
 from models import Post
@@ -29,7 +31,14 @@ async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optiona
     try:
         response = await client.get(f"{ITEM_URL}/{post_id}.json")
         response.raise_for_status()
-        # Cache the response into {post_id.json} file, ai!
+        
+        # Cache the response to a file
+        cache_dir = pathlib.Path(LOCAL_CACHE)
+        cache_dir.mkdir(exist_ok=True)
+        cache_file = cache_dir / f"{post_id}.json"
+        with open(cache_file, "w") as f:
+            json.dump(response.json(), f)
+            
         return response.json()
     except (httpx.HTTPError, httpx.ReadTimeout) as e:
         print(f"[ERROR] Failed to fetch post {post_id}: {e}")
