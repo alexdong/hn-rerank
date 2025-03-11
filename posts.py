@@ -42,9 +42,16 @@ async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
             print(f"[INFO] Loading post {post_id} from cache")
             post_data = json.load(f)
             # Convert embedding from list to numpy array
-            if post_data.get('embedding'):
-                # Return a Post object, instead of json.load response, ai!
-                post_data['embedding'] = np.array(post_data['embedding'], dtype=np.float32)
+            if post_data.get('embedding') is not None:
+                # Return a Post object directly from cache
+                return Post(
+                    id=post_data['id'],
+                    title=post_data['title'],
+                    url=post_data.get('url', ""),
+                    score=post_data.get('score', 0),
+                    embedding=np.array(post_data['embedding'], dtype=np.float32)
+                )
+            return None
     else:
         # If not cached, fetch from API
         response = await client.get(f"{ITEM_URL}/{post_id}.json")
@@ -59,14 +66,14 @@ async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
         
         # Cache the response to a file - convert numpy array to list for JSON serialization
         json_data = post_data.copy()
-        if json_data.get('embedding'):
+        if isinstance(json_data.get('embedding'), np.ndarray):
             json_data['embedding'] = json_data['embedding'].tolist()
             
         with open(cache_file, "w") as f:
             json.dump(json_data, f)
     
     # Convert to Post object
-    if post_data and 'title' in post_data and post_data.get('embedding'):
+    if post_data and 'title' in post_data and post_data.get('embedding') is not None:
         return Post(
             id=post_data['id'],
             title=post_data['title'],
