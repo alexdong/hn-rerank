@@ -1,6 +1,7 @@
 import json
 import openai
-from typing import Dict, Any
+import numpy as np
+from typing import Dict, Any, List, Tuple
 
 SYSTEM_PROMPT = """
 You are a specialized content analyzer for a Hacker News personalization system. Your task is to identify technical interests and domain expertise from user bios, then assign rarity weights to help rank content. You understand the Hacker News ecosystem well - which topics are common (programming, startups, AI) versus rare (specialized scientific domains, niche technologies). Extract concepts a
@@ -98,7 +99,27 @@ async def extract_key_concepts(text: str) -> Dict[str, float]:
     return concepts
 
 
-# add a new function here to take the output from above, calculate the embedding and return a list of [embedding, weight] tuples, ai!
+async def get_weighted_embeddings(concepts: Dict[str, float]) -> List[Tuple[np.ndarray, float]]:
+    """
+    Takes a dictionary of concepts and their weights, calculates embeddings for each concept,
+    and returns a list of (embedding, weight) tuples.
+    
+    Args:
+        concepts: A dictionary mapping concepts to their weights (0-1)
+        
+    Returns:
+        A list of tuples containing (embedding, weight)
+    """
+    from embedding import generate_embedding
+    
+    weighted_embeddings = []
+    
+    for concept, weight in concepts.items():
+        embedding = await generate_embedding(concept)
+        weighted_embeddings.append((embedding, weight))
+    
+    print(f"[INFO] Generated {len(weighted_embeddings)} weighted embeddings")
+    return weighted_embeddings
 
 if __name__ == "__main__":
     # Test the function
