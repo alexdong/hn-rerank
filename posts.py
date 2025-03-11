@@ -29,6 +29,25 @@ class Post(BaseModel):
         d = super().dict(*args, **kwargs)
         d["embedding"] = self.embedding.tolist()
         return d
+    
+    @staticmethod
+    def from_cache(cache_file: pathlib.Path) -> Optional['Post']:
+        """Load a Post object from a cache file."""
+        if not cache_file.exists():
+            return None
+            
+        with open(cache_file, "r") as f:
+            post_data = json.load(f)
+            
+        if post_data.get('embedding') is not None and 'title' in post_data:
+            return Post(
+                id=post_data['id'],
+                title=post_data['title'],
+                url=post_data.get('url', ""),
+                score=post_data.get('score', 0),
+                embedding=np.array(post_data['embedding'], dtype=np.float32)
+            )
+        return None
 
 
 async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
@@ -37,22 +56,12 @@ async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
     cache_dir.mkdir(exist_ok=True)
     cache_file = cache_dir / f"{post_id}.json"
     
-    if cache_file.exists():
-        # Check if the post is already cached
-        with open(cache_file, "r") as f:
-            print(f"[INFO] Loading post {post_id} from cache")
-            # create a static function in Post class to load from cache and refactor current function to use it, ai!
-            post_data = json.load(f)
-            # Convert embedding from list to numpy array
-            if post_data.get('embedding') is not None:
-                # Return a Post object directly from cache
-                return Post(
-                    id=post_data['id'],
-                    title=post_data['title'],
-                    url=post_data.get('url', ""),
-                    score=post_data.get('score', 0),
-                    embedding=np.array(post_data['embedding'], dtype=np.float32)
-                )
+    # Try to load from cache first
+    post = Post.from_cache(cache_file)
+    if post:
+        print(f"[INFO] Loading post {post_id} from cache")
+        return post
+        
     # If not cached, fetch from API
     response = await client.get(f"{ITEM_URL}/{post_id}.json")
     response.raise_for_status()
