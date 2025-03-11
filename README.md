@@ -54,7 +54,8 @@ single page website for this. Here is a description of the web page:
    becomes top-bottom for mobile screen)
 2. The left side is the user's bio input. The user can type in the bio and
    click a submit button. I also want a status bar to show the progress of
-   backend operations (from websocket output).
+   backend operations (from websocket output). Also show a refresh button to
+   re-fetch the HN data to the right of status bar.
 3. The right is the list of 500 posts. Each post is a link
    [post.title](post.url). When the user clicked the "submit" button, the list
    will be re-ordered based the ranking algorithm described above.
