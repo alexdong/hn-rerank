@@ -8,15 +8,17 @@ You are a specialized content analyzer for a Hacker News personalization system.
 
 
 USER_PROMPT = """
- Analyze the following user bio text and extract up to 25 areas the user might be interested to read on Hacker News. Return a JSON object where:
+ Analyze the following user bio text and extract up to 25 areas the user might be interested to read on Hacker News. Return a CSV file where each line contains a concept and its rarity weight, separated by a comma. 
 
- 1. Each key is a distinct concept or interest area (e.g., "machine learning",
- "rust programming", "quantum computing")
- 2. Each value is a weight from 0.0 to 1.0 representing how rare this concept
- is on Hacker News. 1.0 is the rarest and 0.1 is the most common. Make sure the
- weights are distributed linearly across the range.
+ 1. The first value in each row is a distinct concept or interest area (e.g.,
+     "machine learning", "rust programming", "quantum computing")
+ 2. The second value is an estimated rarity score from 0.01 to 1.00,
+     representing how rare this concept is general internet content. 1.0 is the
+     rarest and 0.01 is the most common. Make sure the weights are distributed
+     linearly across the range.
 
  Guidelines:
+ - Prefer more interest areas over fewer, even if the weights are lower
  - Use consistent terminology that would appear in article titles
  - Extract concepts at an appropriate level of granularity (not too broad, not too specific)
  - If the bio is very short, extract fewer concepts but maintain quality
@@ -27,20 +29,18 @@ USER_PROMPT = """
  "I am a theoretical biologist, interested in disease ecology. My tools are R, Clojure, compartmentalism disease modeling, and statistical GAM models, using data layers like geophysical, climate, biodiversity, and land use. I also work on tech applied to agriculture, conservation, forecasting, third-world development, AI, and large language models."
 
  **Example Output**:
- {
-   "theoretical biology": 0.96,
-   "disease ecology": 0.81,
-   "compartmental disease modeling": 0.94,
-   "statistical GAM models": 0.89,
-   "geospatial data analysis": 0.72,
-   "R programming": 0.47,
-   "Clojure": 0.68,
-   "agricultural technology": 0.55,
-   "conservation technology": 0.62,
-   "forecasting systems": 0.52,
-   "third-world development": 0.79,
-   "large language models": 0.29
- }
+theoretical biology,0.96
+disease ecology,0.81
+compartmental disease modeling,0.94
+statistical GAM models,0.89
+geospatial data analysis,0.72
+R programming,0.47
+Clojure,0.68
+agricultural technology,0.55
+conservation technology,0.62
+forecasting systems,0.52
+third-world development,0.79
+large language models,0.29
 """
 
 async def extract_key_concepts(text: str) -> Dict[str, float]:
@@ -64,7 +64,7 @@ async def extract_key_concepts(text: str) -> Dict[str, float]:
         temperature=0.2, # Low temperature for more deterministic results
     )
     
-    # Extract the JSON from the response
+    # Extract the concepts from the csv response, not JSON anymore, ai!
     try:
         concepts_text = response.choices[0].message.content
         # Handle case where the response might include markdown code blocks or explanatory text
