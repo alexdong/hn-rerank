@@ -1,7 +1,12 @@
 import json
 import openai
 import numpy as np
+import hashlib
+import pathlib
+import os
 from typing import Dict, Any, List, Tuple
+
+from config import LOCAL_CACHE
 
 SYSTEM_PROMPT = """
 You are a specialized content analyzer for a Hacker News personalization system. Your task is to identify technical interests and domain expertise from user bios, then assign rarity weights to help rank content. You understand the Hacker News ecosystem well - which topics are common (programming, startups, AI) versus rare (specialized scientific domains, niche technologies). Extract concepts a
@@ -138,7 +143,8 @@ async def extract_traits(bio: str) -> List[Tuple[np.ndarray, float]]:
     
     # Create a hash of the bio text for the cache filename
     bio_hash = hashlib.sha256(bio.encode('utf-8')).hexdigest()[:32]
-    cache_file = pathlib.Path(f"cache/bio_{bio_hash}.json")
+    cache_dir = pathlib.Path(LOCAL_CACHE)
+    cache_file = cache_dir / f"bio_{bio_hash}.json"
     
     # Check if cache file exists
     if cache_file.exists():
@@ -165,7 +171,6 @@ async def extract_traits(bio: str) -> List[Tuple[np.ndarray, float]]:
     weighted_embeddings = await get_weighted_embeddings(concepts)
     
     # Ensure cache directory exists
-    cache_dir = pathlib.Path("cache")
     cache_dir.mkdir(exist_ok=True)
     
     # Save to cache
@@ -187,7 +192,6 @@ async def extract_traits(bio: str) -> List[Tuple[np.ndarray, float]]:
 if __name__ == "__main__":
     # Test the function
     import asyncio
-    import os
     
     if "OPENAI_API_KEY" not in os.environ:
         print("[ERROR] OPENAI_API_KEY environment variable not set")
@@ -210,6 +214,24 @@ if __name__ == "__main__":
             print(f"Embedding (first 5 dimensions): {first_embedding[:5]}")
             print(f"Embedding shape: {first_embedding.shape}")
 
-        # save the embeddings to a file in cache that's called traits.json, ai!
+        # Save the embeddings to a file in cache
+        cache_dir = pathlib.Path(LOCAL_CACHE)
+        cache_dir.mkdir(exist_ok=True)
+        
+        # Convert numpy arrays to lists for JSON serialization
+        serializable_embeddings = {
+            concept: {
+                "embedding": embedding.tolist(),
+                "weight": weight
+            }
+            for concept, (embedding, weight) in zip(concepts.keys(), weighted_embeddings)
+        }
+        
+        # Save to traits.json in the cache directory
+        traits_file = cache_dir / "traits.json"
+        with open(traits_file, "w") as f:
+            json.dump(serializable_embeddings, f, indent=2)
+        
+        print(f"[INFO] Saved weighted embeddings to {traits_file}")
     
     asyncio.run(test_extract())
