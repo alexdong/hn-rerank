@@ -19,7 +19,7 @@ cache_dir.mkdir(exist_ok=True)
 class Post(BaseModel):
     id: int
     title: str
-    url: str  # Make this optional, ai!
+    url: Optional[str] = None
     score: int
     embedding: np.ndarray 
     
