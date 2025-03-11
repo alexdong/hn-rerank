@@ -8,10 +8,23 @@ import httpx
 import openai
 from pydantic import BaseModel, Field
 
+
 # Constants needed for the function
 ITEM_URL = "https://hacker-news.firebaseio.com/v0/item"
 LOCAL_CACHE = "./cache"
 
+
+class Post(BaseModel):
+    id: int
+    title: str
+    url: Optional[str] = None
+    score: int
+    embedding: Optional[List[float]] = None
+    
+    class Config:
+        arbitrary_types_allowed = True  # To allow numpy arrays
+
+# rename the function to fetch_post and it returns Post, ai!
 async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optional[Dict[str, Any]]:
     """Fetch details for a single post."""
     try:
@@ -33,6 +46,7 @@ async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optiona
         
         # Generate embedding for the post title if it has one
         if post_data and 'title' in post_data:
+            # Move the following into a separate function in a new file `embedding.py`, ai!
             try:
                 client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
                 embedding_response = client.embeddings.create(
@@ -54,16 +68,6 @@ async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optiona
         print(f"[ERROR] Failed to fetch post {post_id}: {e}")
         return None
 
-
-class Post(BaseModel):
-    id: int
-    title: str
-    url: Optional[str] = None
-    score: int
-    embedding: Optional[List[float]] = None
-    
-    class Config:
-        arbitrary_types_allowed = True  # To allow numpy arrays
 
 
 if __name__ == "__main__":

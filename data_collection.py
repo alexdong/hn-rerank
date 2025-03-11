@@ -13,7 +13,6 @@ from models import Post, fetch_post_details
 HN_API_BASE = "https://hacker-news.firebaseio.com/v0"
 TOP_STORIES_URL = f"{HN_API_BASE}/topstories.json"
 ITEM_URL = f"{HN_API_BASE}/item"
-MAX_POSTS = 500
 BATCH_SIZE = 20  # Number of concurrent requests
 LOCAL_CACHE = "./cache"
 
@@ -23,9 +22,7 @@ async def fetch_top_story_ids() -> List[int]:
     async with httpx.AsyncClient() as client:
         response = await client.get(TOP_STORIES_URL)
         response.raise_for_status()
-        return response.json()[:MAX_POSTS]
-
-
+        return response.json()
 
 
 async def fetch_all_posts(story_ids: List[int]) -> List[Post]:
