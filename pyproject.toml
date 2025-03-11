@@ -1,9 +1,14 @@
 [project]
 name = "hn-rerank"
 version = "0.1.0"
-description = "Add your description here"
+description = "Re-ranks Hacker News posts according to user preferences"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "python-fasthtml>=0.12.4",
+    "httpx>=0.24.0",
+    "numpy>=1.24.0",
+    "openai>=1.3.0",
+    "ruff>=0.9.10",
+    "pydantic>=2.10.6",
 ]

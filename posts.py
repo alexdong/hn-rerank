@@ -12,14 +12,16 @@ from embedding import generate_embedding
 # Constants needed for the function
 ITEM_URL = "https://hacker-news.firebaseio.com/v0/item"
 LOCAL_CACHE = "./cache"
+cache_dir: pathlib.Path = pathlib.Path(LOCAL_CACHE)
+cache_dir.mkdir(exist_ok=True)
 
 
 class Post(BaseModel):
     id: int
     title: str
-    url: str = ""  # Default empty string instead of Optional
+    url: str
     score: int
-    embedding: np.ndarray  # Not Optional
+    embedding: np.ndarray 
     
     class Config:
         arbitrary_types_allowed = True  # To allow numpy arrays
@@ -30,9 +32,8 @@ class Post(BaseModel):
         d["embedding"] = self.embedding.tolist()
         return d
     
-    def save_to_cache(self, cache_dir: pathlib.Path = pathlib.Path(LOCAL_CACHE)):
+    def save_to_cache(self):
         """Save the post to a cache file."""
-        cache_dir.mkdir(exist_ok=True)
         cache_file = cache_dir / f"{self.id}.json"
         
         # Convert to dict and ensure embedding is a list for JSON serialization
@@ -40,36 +41,22 @@ class Post(BaseModel):
         
         with open(cache_file, "w") as f:
             json.dump(json_data, f)
-        
-        return cache_file
     
     @staticmethod
     def from_cache(cache_file: pathlib.Path) -> Optional['Post']:
         """Load a Post object from a cache file."""
-        if not cache_file.exists():
-            return None
+        if not cache_file.exists(): return None
             
         with open(cache_file, "r") as f:
             post_data = json.load(f)
-            
-        if post_data.get('embedding') is not None and 'title' in post_data:
-            return Post(
-                id=post_data['id'],
-                title=post_data['title'],
-                url=post_data.get('url', ""),
-                score=post_data.get('score', 0),
-                embedding=np.array(post_data['embedding'], dtype=np.float32)
-            )
-        return None
+            post_data['embedding'] = np.array(post_data['embedding'], dtype=np.float32)
+            return Post(**post_data)
 
 
-async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
+async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Post:
     """Fetch details for a single post."""
-    cache_dir = pathlib.Path(LOCAL_CACHE)
-    cache_dir.mkdir(exist_ok=True)
-    cache_file = cache_dir / f"{post_id}.json"
-    
     # Try to load from cache first
+    cache_file = cache_dir / f"{post_id}.json"
     post = Post.from_cache(cache_file)
     if post:
         print(f"[INFO] Loading post {post_id} from cache")
@@ -79,27 +66,13 @@ async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
     response = await client.get(f"{ITEM_URL}/{post_id}.json")
     response.raise_for_status()
     post_data = response.json()
-    
-    # Generate embedding for the post title if it has one
-    if post_data and 'title' in post_data:
-        post_data['embedding'] = generate_embedding(post_data['title'])
-        print(f"[INFO] Generated embedding for post {post_id}")
-        
-        # Build a Post object from post_data
-        post = Post(
-            id=post_data['id'],
-            title=post_data['title'],
-            url=post_data.get('url', ""),
-            score=post_data.get('score', 0),
-            embedding=post_data['embedding']
-        )
-        
-        # Save to cache
-        post.save_to_cache(cache_dir)
-        
-        return post
-    
-    return None
+
+    post_data['embedding'] = generate_embedding(post_data['title'])
+    print(f"[INFO] Generated embedding for post {post_id}")
+
+    post = Post(**post_data)
+    post.save_to_cache()
+    return post
 
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ if __name__ == "__main__":
         print("[ERROR] OPENAI_API_KEY environment variable not set")
         sys.exit(1)
     
-    test_text = "This is a test sentence for embedding generation"
+    test_text = "Happy 20th Birthday, Y Combinator"
     embedding = generate_embedding(test_text)
     
     print(f"Generated embedding for: '{test_text}'")
