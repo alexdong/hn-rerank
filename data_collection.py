@@ -26,7 +26,8 @@ async def fetch_top_story_ids() -> List[int]:
         return response.json()[:MAX_POSTS]
 
 
-async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optional[Dict[str, Any]]:
+# Move the following function to `models.py`, ai!
+async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Post:
     """Fetch details for a single post."""
     try:
         # Check if the post is already cached
@@ -43,6 +44,7 @@ async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optiona
         response = await client.get(f"{ITEM_URL}/{post_id}.json")
         response.raise_for_status()
         
+        # Can you use pydantic to formalise the Post model into a dataclass, ai!
         post_data = response.json()
         
         # Generate embedding for the post title if it has one
@@ -91,37 +93,6 @@ async def fetch_all_posts(story_ids: List[int]) -> List[Post]:
             
             print(f"[INFO] Fetched {len(posts)}/{len(story_ids)} posts")
             
-    return posts
-
-
-async def generate_embeddings(posts: List[Post]) -> List[Post]:
-    """Generate embeddings for post titles using OpenAI API."""
-    client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-    
-    # Process in batches to avoid rate limits
-    batch_size = 50
-    for i in range(0, len(posts), batch_size):
-        batch = posts[i:i+batch_size]
-        titles = [post.title for post in batch]
-        
-        try:
-            response = client.embeddings.create(
-                model="text-embedding-3-small",
-                input=titles
-            )
-            
-            for j, post in enumerate(batch):
-                post.embedding = np.array(response.data[j].embedding)
-                
-            print(f"[INFO] Generated embeddings for posts {i+1}-{min(i+batch_size, len(posts))}")
-            
-            # Sleep to avoid rate limits
-            if i + batch_size < len(posts):
-                time.sleep(0.5)
-                
-        except Exception as e:
-            print(f"[ERROR] Failed to generate embeddings for batch {i//batch_size+1}: {e}")
-    
     return posts
 
 
