@@ -107,11 +107,10 @@ async def collect_hn_data() -> List[Post]:
     posts = await fetch_all_posts(story_ids)
     print(f"[INFO] Fetched details for {len(posts)} posts")
     
-    # Generate embeddings
-    posts_with_embeddings = await generate_embeddings(posts)
-    print(f"[INFO] Generated embeddings for {len(posts_with_embeddings)} posts")
+    # Embeddings are already generated during post fetching
+    print(f"[INFO] Posts with embeddings: {sum(1 for p in posts if p.embedding is not None)}")
     
-    return posts_with_embeddings
+    return posts
 
 
 if __name__ == "__main__":
