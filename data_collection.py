@@ -29,14 +29,21 @@ async def fetch_top_story_ids() -> List[int]:
 async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optional[Dict[str, Any]]:
     """Fetch details for a single post."""
     try:
-        # Check if the post is already cached, ai!
+        # Check if the post is already cached
+        cache_dir = pathlib.Path(LOCAL_CACHE)
+        cache_dir.mkdir(exist_ok=True)
+        cache_file = cache_dir / f"{post_id}.json"
+        
+        if cache_file.exists():
+            with open(cache_file, "r") as f:
+                print(f"[INFO] Loading post {post_id} from cache")
+                return json.load(f)
+        
+        # If not cached, fetch from API
         response = await client.get(f"{ITEM_URL}/{post_id}.json")
         response.raise_for_status()
         
         # Cache the response to a file
-        cache_dir = pathlib.Path(LOCAL_CACHE)
-        cache_dir.mkdir(exist_ok=True)
-        cache_file = cache_dir / f"{post_id}.json"
         with open(cache_file, "w") as f:
             json.dump(response.json(), f)
             
