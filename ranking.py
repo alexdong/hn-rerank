@@ -85,7 +85,7 @@ if __name__ == "__main__":
     # Test the ranking function
     import asyncio
     from fetch import collect_hn_data
-    from traits import extract_key_concepts, get_weighted_embeddings
+    from traits import extract_traits
     
     async def test_ranking():
         # Get sample posts
@@ -93,8 +93,7 @@ if __name__ == "__main__":
         
         # Get sample user interests
         test_bio = "I'm a software engineer interested in AI, machine learning, and distributed systems."
-        concepts = await extract_key_concepts(test_bio)
-        weighted_embeddings = await get_weighted_embeddings(concepts)
+        weighted_embeddings = await extract_traits(test_bio)
         
         # Rank posts
         ranked_posts = rank_posts(posts, weighted_embeddings)

@@ -122,6 +122,68 @@ async def get_weighted_embeddings(concepts: Dict[str, float]) -> List[Tuple[np.n
     return weighted_embeddings
 
 
+async def extract_traits(bio: str) -> List[Tuple[np.ndarray, float]]:
+    """
+    Extract weighted embeddings from a user bio, with caching.
+    
+    Args:
+        bio: The user's bio text
+        
+    Returns:
+        A list of (embedding, weight) tuples
+    """
+    import hashlib
+    import pathlib
+    import json
+    
+    # Create a hash of the bio text for the cache filename
+    bio_hash = hashlib.sha256(bio.encode('utf-8')).hexdigest()[:32]
+    cache_file = pathlib.Path(f"cache/bio_{bio_hash}.json")
+    
+    # Check if cache file exists
+    if cache_file.exists():
+        print(f"[INFO] Loading cached traits from {cache_file}")
+        try:
+            with open(cache_file, 'r') as f:
+                cached_data = json.load(f)
+            
+            # Convert the cached data back to the expected format
+            weighted_embeddings = []
+            for concept_data in cached_data.values():
+                embedding = np.array(concept_data["embedding"])
+                weight = concept_data["weight"]
+                weighted_embeddings.append((embedding, weight))
+            
+            return weighted_embeddings
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"[WARNING] Failed to load cached traits: {e}")
+            # Continue to generate new embeddings
+    
+    # Generate new embeddings
+    print(f"[INFO] Generating new traits for bio")
+    concepts = await extract_key_concepts(bio)
+    weighted_embeddings = await get_weighted_embeddings(concepts)
+    
+    # Ensure cache directory exists
+    cache_dir = pathlib.Path("cache")
+    cache_dir.mkdir(exist_ok=True)
+    
+    # Save to cache
+    serializable_embeddings = {
+        concept: {
+            "embedding": embedding.tolist(),
+            "weight": weight
+        }
+        for concept, (embedding, weight) in zip(concepts.keys(), weighted_embeddings)
+    }
+    
+    with open(cache_file, 'w') as f:
+        json.dump(serializable_embeddings, f, indent=2)
+    
+    print(f"[INFO] Saved traits to {cache_file}")
+    return weighted_embeddings
+
+
 if __name__ == "__main__":
     # Test the function
     import asyncio
