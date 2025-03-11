@@ -43,6 +43,7 @@ async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
             post_data = json.load(f)
             # Convert embedding from list to numpy array
             if post_data.get('embedding'):
+                # Return a Post object, instead of json.load response, ai!
                 post_data['embedding'] = np.array(post_data['embedding'], dtype=np.float32)
     else:
         # If not cached, fetch from API
@@ -77,11 +78,6 @@ async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
 
 
 if __name__ == "__main__":
-    # Test the Post dataclass
-    post = Post(id=123, title="Test Post", url="https://example.com", score=100, 
-                embedding=np.array([0.1, 0.2, 0.3]))
-    print(f"Created post: {post}")
-    
     # Test fetch_post with a real post ID
     import sys
     if "OPENAI_API_KEY" not in os.environ:
