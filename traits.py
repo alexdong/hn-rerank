@@ -77,9 +77,9 @@ async def extract_key_concepts(text: str) -> Dict[str, float]:
         else:
             # Try to find and parse the JSON part
             concepts = json.loads(concepts_text)
-    except (json.JSONDecodeError, IndexError):
+    except (json.JSONDecodeError, IndexError) as e:
         print(f"[ERROR] Failed to parse concepts from response: {concepts_text}")
-        # print out the error, ai!
+        print(f"[ERROR] Exception details: {str(e)}")
         concepts = {}
     
     print(f"[INFO] Extracted {len(concepts)} key concepts from user text")
