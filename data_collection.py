@@ -29,6 +29,7 @@ async def fetch_top_story_ids() -> List[int]:
 async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optional[Dict[str, Any]]:
     """Fetch details for a single post."""
     try:
+        # Check if the post is already cached, ai!
         response = await client.get(f"{ITEM_URL}/{post_id}.json")
         response.raise_for_status()
         
