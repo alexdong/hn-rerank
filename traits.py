@@ -147,5 +147,7 @@ if __name__ == "__main__":
             print(f"Weight: {first_weight}")
             print(f"Embedding (first 5 dimensions): {first_embedding[:5]}")
             print(f"Embedding shape: {first_embedding.shape}")
+
+        # save the embeddings to a file in cache that's called traits.json, ai!
     
     asyncio.run(test_extract())
