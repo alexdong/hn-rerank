@@ -7,8 +7,8 @@ watch-files: true
 read:
   - Python.md
   - README.md
-  - TODO.md
   - pyproject.toml
-  - db.sql
-  - llms-ctx.txt
-  - toolsepc-ctx.md
+  - main.py
+  - posts.py
+  - data_collection.py
+  - fasthtml-ctx.txt
