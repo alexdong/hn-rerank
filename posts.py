@@ -30,6 +30,19 @@ class Post(BaseModel):
         d["embedding"] = self.embedding.tolist()
         return d
     
+    def save_to_cache(self, cache_dir: pathlib.Path = pathlib.Path(LOCAL_CACHE)):
+        """Save the post to a cache file."""
+        cache_dir.mkdir(exist_ok=True)
+        cache_file = cache_dir / f"{self.id}.json"
+        
+        # Convert to dict and ensure embedding is a list for JSON serialization
+        json_data = self.dict()
+        
+        with open(cache_file, "w") as f:
+            json.dump(json_data, f)
+        
+        return cache_file
+    
     @staticmethod
     def from_cache(cache_file: pathlib.Path) -> Optional['Post']:
         """Load a Post object from a cache file."""
@@ -68,27 +81,24 @@ async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
     post_data = response.json()
     
     # Generate embedding for the post title if it has one
-    post_data['embedding'] = generate_embedding(post_data['title'])
-    print(f"[INFO] Generated embedding for post {post_id}")
-    
-    # Build a Post object from post_data using Post(**post_data) and add `save_to_cache` method to Post class and refactor, ai!
-    # Cache the response to a file - convert numpy array to list for JSON serialization
-    json_data = post_data.copy()
-    json_data['embedding'] = json_data['embedding'].tolist()
+    if post_data and 'title' in post_data:
+        post_data['embedding'] = generate_embedding(post_data['title'])
+        print(f"[INFO] Generated embedding for post {post_id}")
         
-    with open(cache_file, "w") as f:
-        json.dump(json_data, f)
-    
-    # Convert to Post object
-    if post_data and 'title' in post_data and post_data.get('embedding') is not None:
-        return Post(
+        # Build a Post object from post_data
+        post = Post(
             id=post_data['id'],
             title=post_data['title'],
-            url=post_data.get('url', ""),  # Default to empty string
+            url=post_data.get('url', ""),
             score=post_data.get('score', 0),
             embedding=post_data['embedding']
         )
-
+        
+        # Save to cache
+        post.save_to_cache(cache_dir)
+        
+        return post
+    
     return None
 
 
