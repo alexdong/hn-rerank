@@ -26,6 +26,7 @@ async def fetch_top_story_ids() -> List[int]:
         return response.json()[:MAX_POSTS]
 
 
+# Move this function to models.py and update its __main__ for a real test with postid 43332658, ai!
 async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optional[Dict[str, Any]]:
     """Fetch details for a single post."""
     try:
