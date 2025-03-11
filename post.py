@@ -6,12 +6,12 @@ import pathlib
 import asyncio
 import httpx
 from pydantic import BaseModel, Field
+
+from config import ITEM_URL, LOCAL_CACHE
 from embedding import generate_embedding
 
 
 # Constants needed for the function
-ITEM_URL = "https://hacker-news.firebaseio.com/v0/item"
-LOCAL_CACHE = "./cache"
 cache_dir: pathlib.Path = pathlib.Path(LOCAL_CACHE)
 cache_dir.mkdir(exist_ok=True)
 
@@ -19,7 +19,7 @@ cache_dir.mkdir(exist_ok=True)
 class Post(BaseModel):
     id: int
     title: str
-    url: str
+    url: str  # Make this optional, ai!
     score: int
     embedding: np.ndarray 
     
@@ -68,7 +68,7 @@ async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Post:
     post_data = response.json()
 
     post_data['embedding'] = generate_embedding(post_data['title'])
-    print(f"[INFO] Generated embedding for post {post_id}")
+    print(f"[INFO] Generated embedding for post {post_id}: {post_data}")
 
     post = Post(**post_data)
     post.save_to_cache()
@@ -83,7 +83,7 @@ if __name__ == "__main__":
         sys.exit(1)
     
     async def test_fetch():
-        test_post_id = 43332658
+        test_post_id = 43334644 # 43332658
         async with httpx.AsyncClient(timeout=30.0) as client:
             post = await fetch_post(client, test_post_id)
             if post:
