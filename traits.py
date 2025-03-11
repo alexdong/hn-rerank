@@ -115,11 +115,12 @@ async def get_weighted_embeddings(concepts: Dict[str, float]) -> List[Tuple[np.n
     weighted_embeddings = []
     
     for concept, weight in concepts.items():
-        embedding = await generate_embedding(concept)
+        embedding = generate_embedding(concept)
         weighted_embeddings.append((embedding, weight))
     
     print(f"[INFO] Generated {len(weighted_embeddings)} weighted embeddings")
     return weighted_embeddings
+
 
 if __name__ == "__main__":
     # Test the function
