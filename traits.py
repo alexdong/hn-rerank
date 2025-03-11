@@ -25,8 +25,8 @@ USER_PROMPT = """
  - If the bio is long, extract more concepts but ensure they are distinct
  - Ensure weights are evenly distributed across the 0-1 range
 
- **Example Input**:
- "I am a theoretical biologist, interested in disease ecology. My tools are R, Clojure, compartmentalism disease modeling, and statistical GAM models, using data layers like geophysical, climate, biodiversity, and land use. I also work on tech applied to agriculture, conservation, forecasting, third-world development, AI, and large language models."
+ **Example User Bio**:
+I am a theoretical biologist, interested in disease ecology. My tools are R, Clojure, compartmentalism disease modeling, and statistical GAM models, using data layers like geophysical, climate, biodiversity, and land use. I also work on tech applied to agriculture, conservation, forecasting, third-world development, AI, and large language models.
 
  **Example Output**:
 theoretical biology,0.96
