@@ -26,8 +26,7 @@ async def fetch_top_story_ids() -> List[int]:
         return response.json()[:MAX_POSTS]
 
 
-# Move the following function to `models.py`, ai!
-async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Post:
+async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optional[Dict[str, Any]]:
     """Fetch details for a single post."""
     try:
         # Check if the post is already cached
@@ -44,7 +43,6 @@ async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Post:
         response = await client.get(f"{ITEM_URL}/{post_id}.json")
         response.raise_for_status()
         
-        # Can you use pydantic to formalise the Post model into a dataclass, ai!
         post_data = response.json()
         
         # Generate embedding for the post title if it has one
@@ -88,6 +86,7 @@ async def fetch_all_posts(story_ids: List[int]) -> List[Post]:
                         title=result['title'],
                         url=result.get('url'),
                         score=result.get('score', 0),
+                        embedding=result.get('embedding')
                     )
                     posts.append(post)
             

@@ -1,15 +1,17 @@
-from dataclasses import dataclass
 from typing import List, Optional
 import numpy as np
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class Post:
+class Post(BaseModel):
     id: int
     title: str
-    url: Optional[str]
+    url: Optional[str] = None
     score: int
-    embedding: Optional[np.ndarray] = None
+    embedding: Optional[List[float]] = None
+    
+    class Config:
+        arbitrary_types_allowed = True  # To allow numpy arrays
 
 
 if __name__ == "__main__":
