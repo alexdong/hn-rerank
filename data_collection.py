@@ -6,7 +6,6 @@ import numpy as np
 import json
 import pathlib
 from typing import List, Dict, Any, Optional
-import openai
 from models import Post, fetch_post
 
 
@@ -56,7 +55,7 @@ async def collect_hn_data() -> List[Post]:
     print(f"[INFO] Fetched details for {len(posts)} posts")
     
     # Embeddings are already generated during post fetching
-    print(f"[INFO] Posts with embeddings: {sum(1 for p in posts if p.embedding is not None)}")
+    print(f"[INFO] Posts with embeddings: {len(posts)}")
     
     return posts
 
@@ -72,5 +71,5 @@ if __name__ == "__main__":
     # Print some sample data to verify
     if posts:
         print(f"\nSample post: {posts[0]}")
-        print(f"Embedding shape: {posts[0].embedding.shape if posts[0].embedding is not None else None}")
+        print(f"Embedding shape: {posts[0].embedding.shape}")
         print(f"\nTotal posts collected: {len(posts)}")

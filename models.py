@@ -1,12 +1,12 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 import numpy as np
 import os
 import json
 import pathlib
 import asyncio
 import httpx
-import openai
 from pydantic import BaseModel, Field
+from embedding import generate_embedding
 
 
 # Constants needed for the function
@@ -17,78 +17,74 @@ LOCAL_CACHE = "./cache"
 class Post(BaseModel):
     id: int
     title: str
-    url: Optional[str] = None
+    url: str = ""  # Default empty string instead of Optional
     score: int
-    embedding: Optional[List[float]] = None
+    embedding: np.ndarray  # Not Optional
     
     class Config:
         arbitrary_types_allowed = True  # To allow numpy arrays
+        
+    def dict(self, *args, **kwargs):
+        """Override dict method to convert numpy array to list for JSON serialization."""
+        d = super().dict(*args, **kwargs)
+        d["embedding"] = self.embedding.tolist()
+        return d
 
 # rename the function to fetch_post and it returns Post, ai!
 async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
     """Fetch details for a single post."""
-    try:
-        # Check if the post is already cached
-        cache_dir = pathlib.Path(LOCAL_CACHE)
-        cache_dir.mkdir(exist_ok=True)
-        cache_file = cache_dir / f"{post_id}.json"
+    # Check if the post is already cached
+    cache_dir = pathlib.Path(LOCAL_CACHE)
+    cache_dir.mkdir(exist_ok=True)
+    cache_file = cache_dir / f"{post_id}.json"
+    
+    if cache_file.exists():
+        with open(cache_file, "r") as f:
+            print(f"[INFO] Loading post {post_id} from cache")
+            post_data = json.load(f)
+            # Convert embedding from list to numpy array
+            if post_data.get('embedding'):
+                post_data['embedding'] = np.array(post_data['embedding'], dtype=np.float32)
+    else:
+        # If not cached, fetch from API
+        response = await client.get(f"{ITEM_URL}/{post_id}.json")
+        response.raise_for_status()
         
-        if cache_file.exists():
-            with open(cache_file, "r") as f:
-                print(f"[INFO] Loading post {post_id} from cache")
-                post_data = json.load(f)
-        else:
-            # If not cached, fetch from API
-            response = await client.get(f"{ITEM_URL}/{post_id}.json")
-            response.raise_for_status()
-            
-            post_data = response.json()
-            
-            # Generate embedding for the post title if it has one
-            if post_data and 'title' in post_data:
-                # Move the following into a separate function in a new file `embedding.py`, ai!
-                try:
-                    client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-                    embedding_response = client.embeddings.create(
-                        model="text-embedding-3-small",
-                        input=[post_data['title']]
-                    )
-                    post_data['embedding'] = embedding_response.data[0].embedding
-                    print(f"[INFO] Generated embedding for post {post_id}")
-                except Exception as e:
-                    print(f"[ERROR] Failed to generate embedding for post {post_id}: {e}")
-                    post_data['embedding'] = None
-            
-            # Cache the response to a file
-            with open(cache_file, "w") as f:
-                json.dump(post_data, f)
+        post_data = response.json()
         
-        # Convert to Post object
+        # Generate embedding for the post title if it has one
         if post_data and 'title' in post_data:
-            return Post(
-                id=post_data['id'],
-                title=post_data['title'],
-                url=post_data.get('url'),
-                score=post_data.get('score', 0),
-                embedding=post_data.get('embedding')
-            )
-        return None
-    except (httpx.HTTPError, httpx.ReadTimeout) as e:
-        print(f"[ERROR] Failed to fetch post {post_id}: {e}")
-        return None
+            post_data['embedding'] = generate_embedding(post_data['title'])
+            print(f"[INFO] Generated embedding for post {post_id}")
+        
+        # Cache the response to a file - convert numpy array to list for JSON serialization
+        json_data = post_data.copy()
+        if json_data.get('embedding'):
+            json_data['embedding'] = json_data['embedding'].tolist()
+            
+        with open(cache_file, "w") as f:
+            json.dump(json_data, f)
+    
+    # Convert to Post object
+    if post_data and 'title' in post_data and post_data.get('embedding'):
+        return Post(
+            id=post_data['id'],
+            title=post_data['title'],
+            url=post_data.get('url', ""),  # Default to empty string
+            score=post_data.get('score', 0),
+            embedding=post_data['embedding']
+        )
+    return None
 
 
 
 if __name__ == "__main__":
     # Test the Post dataclass
-    post = Post(id=123, title="Test Post", url="https://example.com", score=100)
+    post = Post(id=123, title="Test Post", url="https://example.com", score=100, 
+                embedding=np.array([0.1, 0.2, 0.3]))
     print(f"Created post: {post}")
     
-    # Test with embedding
-    post.embedding = np.array([0.1, 0.2, 0.3])
-    print(f"Post with embedding: {post}")
-    
-    # Test fetch_post_details with a real post ID
+    # Test fetch_post with a real post ID
     import sys
     if "OPENAI_API_KEY" not in os.environ:
         print("[ERROR] OPENAI_API_KEY environment variable not set")
@@ -100,7 +96,7 @@ if __name__ == "__main__":
             post = await fetch_post(client, test_post_id)
             if post:
                 print(f"\nFetched post: {post}")
-                print(f"Embedding length: {len(post.embedding) if post.embedding else None}")
+                print(f"Embedding shape: {post.embedding.shape}")
             else:
                 print(f"Failed to fetch post {test_post_id}")
     
