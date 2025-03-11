@@ -134,5 +134,7 @@ if __name__ == "__main__":
         test_text = "I'm an AI scientist/engineer. I love to tinker with technology. My preferred language is Python. I'm interested in tracking latest development in AI research and its applications. I am also interested in economics, geopolitics, gardening, cooking and design."  
         concepts = await extract_key_concepts(test_text)
         print(json.dumps(concepts, indent=2))
+
+        # print out the embeddings from `get_weighted_embeddings` as well, ai!
     
     asyncio.run(test_extract())
