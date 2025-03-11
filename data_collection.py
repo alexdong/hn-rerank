@@ -7,7 +7,7 @@ import json
 import pathlib
 from typing import List, Dict, Any, Optional
 import openai
-from models import Post
+from models import Post, fetch_post_details
 
 
 HN_API_BASE = "https://hacker-news.firebaseio.com/v0"
@@ -26,48 +26,6 @@ async def fetch_top_story_ids() -> List[int]:
         return response.json()[:MAX_POSTS]
 
 
-# Move this function to models.py and update its __main__ for a real test with postid 43332658, ai!
-async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optional[Dict[str, Any]]:
-    """Fetch details for a single post."""
-    try:
-        # Check if the post is already cached
-        cache_dir = pathlib.Path(LOCAL_CACHE)
-        cache_dir.mkdir(exist_ok=True)
-        cache_file = cache_dir / f"{post_id}.json"
-        
-        if cache_file.exists():
-            with open(cache_file, "r") as f:
-                print(f"[INFO] Loading post {post_id} from cache")
-                return json.load(f)
-        
-        # If not cached, fetch from API
-        response = await client.get(f"{ITEM_URL}/{post_id}.json")
-        response.raise_for_status()
-        
-        post_data = response.json()
-        
-        # Generate embedding for the post title if it has one
-        if post_data and 'title' in post_data:
-            try:
-                client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-                embedding_response = client.embeddings.create(
-                    model="text-embedding-3-small",
-                    input=[post_data['title']]
-                )
-                post_data['embedding'] = embedding_response.data[0].embedding
-                print(f"[INFO] Generated embedding for post {post_id}")
-            except Exception as e:
-                print(f"[ERROR] Failed to generate embedding for post {post_id}: {e}")
-                post_data['embedding'] = None
-        
-        # Cache the response to a file
-        with open(cache_file, "w") as f:
-            json.dump(post_data, f)
-            
-        return post_data
-    except (httpx.HTTPError, httpx.ReadTimeout) as e:
-        print(f"[ERROR] Failed to fetch post {post_id}: {e}")
-        return None
 
 
 async def fetch_all_posts(story_ids: List[int]) -> List[Post]:
