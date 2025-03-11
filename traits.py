@@ -64,20 +64,32 @@ async def extract_key_concepts(text: str) -> Dict[str, float]:
         temperature=0.2, # Low temperature for more deterministic results
     )
     
-    # Extract the concepts from the csv response, not JSON anymore, ai!
+    # Extract the concepts from the CSV response
     try:
         concepts_text = response.choices[0].message.content
-        # Handle case where the response might include markdown code blocks or explanatory text
-        if "```json" in concepts_text:
-            json_part = concepts_text.split("```json")[1].split("```")[0].strip()
-            concepts = json.loads(json_part)
-        elif "```" in concepts_text:
-            json_part = concepts_text.split("```")[1].split("```")[0].strip()
-            concepts = json.loads(json_part)
+        concepts = {}
+        
+        # Handle case where the response might include markdown code blocks
+        if "```" in concepts_text:
+            # Extract content from code block (whether it's labeled as csv or not)
+            csv_part = concepts_text.split("```")[1].split("```")[0].strip()
+            lines = csv_part.strip().split('\n')
         else:
-            # Try to find and parse the JSON part
-            concepts = json.loads(concepts_text)
-    except (json.JSONDecodeError, IndexError) as e:
+            # Use the whole response
+            lines = concepts_text.strip().split('\n')
+        
+        # Process each line as CSV (concept,weight)
+        for line in lines:
+            if ',' in line:
+                concept, weight_str = line.split(',', 1)
+                concept = concept.strip()
+                try:
+                    weight = float(weight_str.strip())
+                    concepts[concept] = weight
+                except ValueError:
+                    print(f"[WARNING] Could not parse weight from line: {line}")
+                    
+    except (IndexError, ValueError) as e:
         print(f"[ERROR] Failed to parse concepts from response: {concepts_text}")
         print(f"[ERROR] Exception details: {str(e)}")
         concepts = {}
