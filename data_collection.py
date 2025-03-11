@@ -7,7 +7,7 @@ import json
 import pathlib
 from typing import List, Dict, Any, Optional
 import openai
-from models import Post, fetch_post_details
+from models import Post, fetch_post
 
 
 HN_API_BASE = "https://hacker-news.firebaseio.com/v0"
@@ -32,19 +32,11 @@ async def fetch_all_posts(story_ids: List[int]) -> List[Post]:
     async with httpx.AsyncClient(timeout=30.0) as client:
         for i in range(0, len(story_ids), BATCH_SIZE):
             batch_ids = story_ids[i:i+BATCH_SIZE]
-            batch_tasks = [fetch_post_details(client, post_id) for post_id in batch_ids]
+            batch_tasks = [fetch_post(client, post_id) for post_id in batch_ids]
             batch_results = await asyncio.gather(*batch_tasks)
             
-            for result in batch_results:
-                if result and 'title' in result:
-                    post = Post(
-                        id=result['id'],
-                        title=result['title'],
-                        url=result.get('url'),
-                        score=result.get('score', 0),
-                        embedding=result.get('embedding')
-                    )
-                    posts.append(post)
+            # Filter out None results
+            posts.extend([post for post in batch_results if post])
             
             print(f"[INFO] Fetched {len(posts)}/{len(story_ids)} posts")
             
