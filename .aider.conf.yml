@@ -1,0 +1,14 @@
+model: claude-3-7-sonnet-20250219
+cache-prompts: true
+cache-keepalive-pings: 2
+stream: false
+auto-commits: true
+watch-files: true
+read:
+  - Python.md
+  - README.md
+  - TODO.md
+  - pyproject.toml
+  - db.sql
+  - llms-ctx.txt
+  - toolsepc-ctx.md
