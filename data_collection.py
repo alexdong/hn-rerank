@@ -42,6 +42,8 @@ async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optiona
         # If not cached, fetch from API
         response = await client.get(f"{ITEM_URL}/{post_id}.json")
         response.raise_for_status()
+
+        # generate the embedding and store it in the cache, ai!
         
         # Cache the response to a file
         with open(cache_file, "w") as f:
