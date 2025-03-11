@@ -137,21 +137,16 @@ async def extract_traits(bio: str) -> List[Tuple[np.ndarray, float]]:
     Returns:
         A list of (embedding, weight) tuples
     """
-    import hashlib
-    import pathlib
-    import json
-    
     # Create a hash of the bio text for the cache filename
     bio_hash = hashlib.sha256(bio.encode('utf-8')).hexdigest()[:32]
     cache_dir = pathlib.Path(LOCAL_CACHE)
-    cache_file = cache_dir / f"bio_{bio_hash}.json"
     
     # Check if cache file exists
+    cache_file = cache_dir / f"bio_{bio_hash}.json"
     if cache_file.exists():
         print(f"[INFO] Loading cached traits from {cache_file}")
-        try:
-            with open(cache_file, 'r') as f:
-                cached_data = json.load(f)
+        with open(cache_file, 'r') as f:
+            cached_data = json.load(f)
             
             # Convert the cached data back to the expected format
             weighted_embeddings = []
@@ -161,21 +156,15 @@ async def extract_traits(bio: str) -> List[Tuple[np.ndarray, float]]:
                 weighted_embeddings.append((embedding, weight))
             
             return weighted_embeddings
-        except (json.JSONDecodeError, KeyError) as e:
-            print(f"[WARNING] Failed to load cached traits: {e}")
-            # Continue to generate new embeddings
     
     # Generate new embeddings
     print(f"[INFO] Generating new traits for bio")
     concepts = await extract_key_concepts(bio)
     weighted_embeddings = await get_weighted_embeddings(concepts)
     
-    # Ensure cache directory exists
-    cache_dir.mkdir(exist_ok=True)
-    
     # Save to cache
     serializable_embeddings = {
-        concept: {
+        concept, 
             "embedding": embedding.tolist(),
             "weight": weight
         }
@@ -198,40 +187,8 @@ if __name__ == "__main__":
         exit(1)
     
     async def test_extract():
-        test_text = "I'm an AI scientist/engineer. I love to tinker with technology. My preferred language is Python. I'm interested in tracking latest development in AI research and its applications. I am also interested in economics, geopolitics, gardening, cooking and design."  
-        concepts = await extract_key_concepts(test_text)
-        print(json.dumps(concepts, indent=2))
-        
-        # Test get_weighted_embeddings
-        weighted_embeddings = await get_weighted_embeddings(concepts)
-        print(f"\n[INFO] Sample of weighted embeddings:")
-        # Print first embedding with limited dimensions for readability
-        if weighted_embeddings:
-            first_concept = list(concepts.keys())[0]
-            first_embedding, first_weight = weighted_embeddings[0]
-            print(f"Concept: {first_concept}")
-            print(f"Weight: {first_weight}")
-            print(f"Embedding (first 5 dimensions): {first_embedding[:5]}")
-            print(f"Embedding shape: {first_embedding.shape}")
-
-        # Save the embeddings to a file in cache
-        cache_dir = pathlib.Path(LOCAL_CACHE)
-        cache_dir.mkdir(exist_ok=True)
-        
-        # Convert numpy arrays to lists for JSON serialization
-        serializable_embeddings = {
-            concept: {
-                "embedding": embedding.tolist(),
-                "weight": weight
-            }
-            for concept, (embedding, weight) in zip(concepts.keys(), weighted_embeddings)
-        }
-        
-        # Save to traits.json in the cache directory
-        traits_file = cache_dir / "traits.json"
-        with open(traits_file, "w") as f:
-            json.dump(serializable_embeddings, f, indent=2)
-        
-        print(f"[INFO] Saved weighted embeddings to {traits_file}")
+        bio = "I'm an AI scientist/engineer. I love to tinker with technology. My preferred language is Python. I'm interested in tracking latest development in AI research and its applications. I am also interested in economics, geopolitics, gardening, cooking and design."  
+        traits = await extract_traits(bio)
+        print(f"\nExtracted {len(traits)} traits from user bio")
     
     asyncio.run(test_extract())

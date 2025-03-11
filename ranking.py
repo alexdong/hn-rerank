@@ -21,10 +21,6 @@ def rank_posts(posts: List[Post], weighted_embeddings: List[Tuple[np.ndarray, fl
     scored_posts = []
     
     for post in posts:
-        # Skip posts without embeddings
-        if post.embedding is None or not any(post.embedding):
-            continue
-            
         # Calculate similarity to each weighted concept
         total_score = 0.0
         total_weight = 0.0
