@@ -30,16 +30,18 @@ class Post(BaseModel):
         d["embedding"] = self.embedding.tolist()
         return d
 
+
 async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
     """Fetch details for a single post."""
-    # Check if the post is already cached
     cache_dir = pathlib.Path(LOCAL_CACHE)
     cache_dir.mkdir(exist_ok=True)
     cache_file = cache_dir / f"{post_id}.json"
     
     if cache_file.exists():
+        # Check if the post is already cached
         with open(cache_file, "r") as f:
             print(f"[INFO] Loading post {post_id} from cache")
+            # create a static function in Post class to load from cache and refactor current function to use it, ai!
             post_data = json.load(f)
             # Convert embedding from list to numpy array
             if post_data.get('embedding') is not None:
@@ -51,26 +53,23 @@ async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
                     score=post_data.get('score', 0),
                     embedding=np.array(post_data['embedding'], dtype=np.float32)
                 )
-            return None
-    else:
-        # If not cached, fetch from API
-        response = await client.get(f"{ITEM_URL}/{post_id}.json")
-        response.raise_for_status()
+    # If not cached, fetch from API
+    response = await client.get(f"{ITEM_URL}/{post_id}.json")
+    response.raise_for_status()
+    post_data = response.json()
+    
+    # Generate embedding for the post title if it has one
+    if post_data and 'title' in post_data:
+        post_data['embedding'] = generate_embedding(post_data['title'])
+        print(f"[INFO] Generated embedding for post {post_id}")
+    
+    # Cache the response to a file - convert numpy array to list for JSON serialization
+    json_data = post_data.copy()
+    if isinstance(json_data.get('embedding'), np.ndarray):
+        json_data['embedding'] = json_data['embedding'].tolist()
         
-        post_data = response.json()
-        
-        # Generate embedding for the post title if it has one
-        if post_data and 'title' in post_data:
-            post_data['embedding'] = generate_embedding(post_data['title'])
-            print(f"[INFO] Generated embedding for post {post_id}")
-        
-        # Cache the response to a file - convert numpy array to list for JSON serialization
-        json_data = post_data.copy()
-        if isinstance(json_data.get('embedding'), np.ndarray):
-            json_data['embedding'] = json_data['embedding'].tolist()
-            
-        with open(cache_file, "w") as f:
-            json.dump(json_data, f)
+    with open(cache_file, "w") as f:
+        json.dump(json_data, f)
     
     # Convert to Post object
     if post_data and 'title' in post_data and post_data.get('embedding') is not None:
@@ -81,6 +80,7 @@ async def fetch_post(client: httpx.AsyncClient, post_id: int) -> Optional[Post]:
             score=post_data.get('score', 0),
             embedding=post_data['embedding']
         )
+
     return None
 
 
