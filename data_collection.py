@@ -42,14 +42,28 @@ async def fetch_post_details(client: httpx.AsyncClient, post_id: int) -> Optiona
         # If not cached, fetch from API
         response = await client.get(f"{ITEM_URL}/{post_id}.json")
         response.raise_for_status()
-
-        # generate the embedding and store it in the cache, ai!
+        
+        post_data = response.json()
+        
+        # Generate embedding for the post title if it has one
+        if post_data and 'title' in post_data:
+            try:
+                client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+                embedding_response = client.embeddings.create(
+                    model="text-embedding-3-small",
+                    input=[post_data['title']]
+                )
+                post_data['embedding'] = embedding_response.data[0].embedding
+                print(f"[INFO] Generated embedding for post {post_id}")
+            except Exception as e:
+                print(f"[ERROR] Failed to generate embedding for post {post_id}: {e}")
+                post_data['embedding'] = None
         
         # Cache the response to a file
         with open(cache_file, "w") as f:
-            json.dump(response.json(), f)
+            json.dump(post_data, f)
             
-        return response.json()
+        return post_data
     except (httpx.HTTPError, httpx.ReadTimeout) as e:
         print(f"[ERROR] Failed to fetch post {post_id}: {e}")
         return None
