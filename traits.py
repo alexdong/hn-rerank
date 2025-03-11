@@ -97,6 +97,9 @@ async def extract_key_concepts(text: str) -> Dict[str, float]:
     print(f"[INFO] Extracted {len(concepts)} key concepts from user text")
     return concepts
 
+
+# add a new function here to take the output from above, calculate the embedding and return a list of [embedding, weight] tuples, ai!
+
 if __name__ == "__main__":
     # Test the function
     import asyncio
