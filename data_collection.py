@@ -6,7 +6,7 @@ import numpy as np
 import json
 import pathlib
 from typing import List, Dict, Any, Optional
-from models import Post, fetch_post
+from posts import Post, fetch_post
 
 
 HN_API_BASE = "https://hacker-news.firebaseio.com/v0"
