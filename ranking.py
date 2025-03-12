@@ -39,6 +39,7 @@ def rank_posts(posts: List[Post], weighted_embeddings: List[Tuple[np.ndarray, fl
         else:
             final_score = 0.0
             
+        # Replace the following with a scoring that times the final_score by the HN score, ai!
         # Combine with original HN score for balanced ranking
         # Convert HN score to 0-1 range (assuming max score around 1000)
         hn_score_normalized = min(post.score / 1000.0, 1.0) if post.score else 0.0
