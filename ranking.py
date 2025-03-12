@@ -39,13 +39,12 @@ def rank_posts(posts: List[Post], weighted_embeddings: List[Tuple[np.ndarray, fl
         else:
             final_score = 0.0
             
-        # Replace the following with a scoring that times the final_score by the HN score, ai!
-        # Combine with original HN score for balanced ranking
-        # Convert HN score to 0-1 range (assuming max score around 1000)
-        hn_score_normalized = min(post.score / 1000.0, 1.0) if post.score else 0.0
+        # Get the raw HN score or default to 1 if none
+        hn_score = post.score if post.score else 1
         
-        # Weighted combination (0.7 for relevance, 0.3 for original ranking)
-        combined_score = (0.7 * final_score) + (0.3 * hn_score_normalized)
+        # Multiply the similarity score by the HN score
+        # This will boost posts that have both high relevance and high community interest
+        combined_score = final_score * hn_score
         
         scored_posts.append((post, combined_score))
     
