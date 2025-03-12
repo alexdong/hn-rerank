@@ -18,6 +18,9 @@ posts: List[Post] = []
 # Main route for the application
 @rt('/')
 def get():
+    # Generate HTML for initial posts
+    initial_posts_html = generate_posts_html(posts)
+    
     return Titled("HN Re-ranking",
         # Main container with split view
         Div(
@@ -47,10 +50,9 @@ def get():
             ),
             
             # Right side: Posts list
-            # Always show the posts. If bio is empty, just use the posts as-is, ai!
             Div(
                 H2("Ranked Posts"),
-                Div(id="posts-list", cls="posts-list"),
+                Div(*initial_posts_html, id="posts-list", cls="posts-list"),
                 cls="right-panel"
             ),
             
@@ -151,6 +153,19 @@ def get():
         """)
     )
 
+# Helper function to generate HTML for posts
+def generate_posts_html(post_list):
+    posts_html = []
+    for post in post_list[:500]:
+        url = post.url if post.url else f"https://news.ycombinator.com/item?id={post.id}"
+        post_html = Article(
+            H3(A(post.title, href=url, target="_blank"), cls="post-title"),
+            P(f"Score: {post.score}", cls="post-score"),
+            cls="post-item"
+        )
+        posts_html.append(post_html)
+    return posts_html
+
 # Route to handle the ranking request
 @rt('/rank')
 async def post(bio: str):
@@ -171,16 +186,8 @@ async def post(bio: str):
     except Exception as e:
         return Div(P(f"Error ranking posts: {str(e)}"), cls="post-item")
     
-    # Generate HTML for ranked posts
-    posts_html = []
-    for i, post in enumerate(ranked_posts[:500]):
-        url = post.url if post.url else f"https://news.ycombinator.com/item?id={post.id}"
-        post_html = Article(
-            H3(A(post.title, href=url, target="_blank"), cls="post-title"),
-            P(f"Score: {post.score}", cls="post-score"),
-            cls="post-item"
-        )
-        posts_html.append(post_html)
+    # Generate HTML for ranked posts using the shared function
+    posts_html = generate_posts_html(ranked_posts)
     
     # Return the ranked posts
     return Div(*posts_html)
