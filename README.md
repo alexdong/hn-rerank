@@ -47,7 +47,7 @@ The project is divided into three parts:
 
 ## 4. Website Design
 
-To make it more fun, I'd like to use `fasthtml` and `socketio` to build a
+To make it more fun, I'd like to use `fasthtml` to build a
 single page website for this. Here is a description of the web page:
 
 1. The web page has left-right split view (make it mobile friendly so it
@@ -70,7 +70,7 @@ single page website for this. Here is a description of the web page:
 - DO use `ruff` for type checking and `pyright` for static type checking.
 - DO break the code into small .py files and use `__main__` block to test each
   one individually.
-- DO produce `makefile` to run the linter, code and deploy to railway[5].
+- DO produce `Makefile` to run the linter, code and deploy to railway[5].
 
 
 

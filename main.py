@@ -109,22 +109,6 @@ def get():
             .posts-list {
                 margin-top: 1rem;
             }
-            .post-item {
-                margin-bottom: 1rem;
-                padding: 1rem;
-                border-radius: 4px;
-                background-color: var(--card-background-color);
-                border: 1px solid var(--muted-border-color);
-                list-style-type: none;
-            }
-            .post-title {
-                margin-top: 0;
-                margin-bottom: 0.5rem;
-            }
-            .post-score {
-                font-size: 0.9rem;
-                color: var(--muted-color);
-            }
             
             /* Mobile responsive */
             @media (max-width: 768px) {
