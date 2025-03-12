@@ -1,11 +1,7 @@
-.PHONY: run lint deploy
+.PHONY: run deploy
 
 run:
-	python main.py
-
-lint:
-	ruff check .
-	pyright .
+	uv run main.py
 
 deploy:
 	railway init -n hn-rerank
