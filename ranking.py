@@ -46,8 +46,9 @@ def rank_posts(posts: List[Post], weighted_embeddings: List[Tuple[np.ndarray, fl
         # This will boost posts that have both high relevance and community interest
         # but dampen the effect of very high HN scores
         combined_score = final_score * (hn_score ** 0.5)  # Square root of hn_score
-        
-        scored_posts.append((post, combined_score))
+        # Filter out the topics that the user has no interest in.
+        if combined_score > 0:
+            scored_posts.append((post, combined_score))
     
     print(f"[INFO] Calculated relevance scores for {len(scored_posts)} posts")
     

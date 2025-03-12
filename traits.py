@@ -10,7 +10,7 @@ from config import LOCAL_CACHE
 
 SYSTEM_PROMPT = """
 You are a specialized content analyzer for a Hacker News personalization system. Your task is to identify technical interests and domain expertise from user bios, then assign rarity weights to help rank content. You understand the Hacker News ecosystem well - which topics are common (programming, startups, AI) versus rare (specialized scientific domains, niche technologies). Extract concepts a
- the right granularity level that would match with article titles and topics. Be precise, consistent, and focus on technical/professional interests rather than personal traits."""
+ the right granularity level that would match with article titles and topics. Be precise, consistent, and focus on technical/professional interests rather than personal traits. Please don't show me any Apple news. I hate that company. """
 
 
 USER_PROMPT = """
@@ -18,10 +18,12 @@ USER_PROMPT = """
 
  1. The first value in each row is a distinct concept or interest area (e.g.,
      "machine learning", "rust programming", "quantum computing")
- 2. The second value is an estimated rarity score from 0.01 to 1.00,
+ 2. The second value is an estimated rarity score from -1.00 to 1.00,
      representing how rare this concept is general internet content. 1.0 is the
      rarest and 0.01 is the most common. Make sure the weights are distributed
      linearly across the range.
+ 3. If the weight is negative, it means that the user has explicitly mentioned
+     they are not interested in that topic. Respect that.
 
  Guidelines:
  - Prefer more interest areas over fewer, even if the weights are lower
@@ -47,6 +49,7 @@ conservation technology,0.62
 forecasting systems,0.52
 third-world development,0.79
 large language models,0.29
+apple, -0.27
 """
 
 async def extract_key_concepts(text: str) -> Dict[str, float]:
@@ -187,7 +190,7 @@ if __name__ == "__main__":
         exit(1)
     
     async def test_extract():
-        bio = "I'm an AI scientist/engineer. I love to tinker with technology. My preferred language is Python. I'm interested in tracking latest development in AI research and its applications. I am also interested in economics, geopolitics, gardening, cooking and design."  
+        bio = "I'm an AI scientist/engineer. I love to tinker with technology. My preferred language is Python. I'm interested in tracking latest development in AI research and its applications. I am also interested in economics, geopolitics, gardening, cooking and design. I'm not interested in anything related to Android."  
         traits = await extract_traits(bio)
         print(f"\nExtracted {len(traits)} traits from user bio")
     
