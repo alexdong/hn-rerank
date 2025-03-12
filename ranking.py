@@ -88,7 +88,8 @@ if __name__ == "__main__":
         posts = await collect_hn_data()
         
         # Get sample user interests
-        test_bio = "I'm a software engineer interested in AI, machine learning, and distributed systems."
+        #test_bio = "I'm a software engineer interested in AI, machine learning, and gardening."
+        test_bio = "I'm a software engineer interested in AI, machine learning, history and general technology tinkering."
         weighted_embeddings = await extract_traits(test_bio)
         
         # Rank posts

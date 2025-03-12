@@ -164,7 +164,7 @@ async def extract_traits(bio: str) -> List[Tuple[np.ndarray, float]]:
     
     # Save to cache
     serializable_embeddings = {
-        concept, 
+        concept: {
             "embedding": embedding.tolist(),
             "weight": weight
         }
