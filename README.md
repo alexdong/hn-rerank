@@ -79,24 +79,6 @@ single page website for this. Here is a description of the web page:
 [4]: https://www.fastht.ml/ and `fasthtml-ctx.txt` is provided in the repo.
 [5]: The following is how to deploy the app to railway.
 
-    > Code to go with beginner FastHTML tutorial. First install fasthtml:
-    > 
     > ```bash
-    > pip install -U python-fasthtml
-    > ```
-    > 
-    > Make sure you've installed the railway CLI, and logged in with:
-    > 
-    > ```bash
-    > railway login
-    > ```
-    > 
-    > Then, to deploy an app, cd to the directory, and run:
-    > 
-    > ```bash
-    > railway init -n hn-rerank
     > railway up -c
-    > railway domain
-    > fh_railway_link
-    > railway volume add -m /app/data
     > ```
