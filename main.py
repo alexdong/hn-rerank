@@ -47,6 +47,7 @@ def get():
             ),
             
             # Right side: Posts list
+            # Always show the posts. If bio is empty, just use the posts as-is, ai!
             Div(
                 H2("Ranked Posts"),
                 Div(id="posts-list", cls="posts-list"),
@@ -163,15 +164,8 @@ async def post(bio: str):
     except Exception as e:
         return Div(P(f"Error analyzing interests: {str(e)}"), cls="post-item")
     
-    # Fetch posts if not already fetched
-    global posts
-    if not posts:
-        try:
-            posts = await collect_hn_data()
-        except Exception as e:
-            return Div(P(f"Error fetching posts: {str(e)}"), cls="post-item")
-    
     # Rank posts based on user interests
+    global posts
     try:
         ranked_posts = rank_posts(posts, weighted_embeddings)
     except Exception as e:
