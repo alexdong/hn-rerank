@@ -52,7 +52,7 @@ def get():
             # Right side: Posts list
             Div(
                 H2("Ranked Posts"),
-                Div(*initial_posts_html, id="posts-list", cls="posts-list"),
+                Ul(*initial_posts_html, id="posts-list", cls="posts-list"),
                 cls="right-panel"
             ),
             
@@ -105,6 +105,7 @@ def get():
                 border-radius: 4px;
                 background-color: var(--card-background-color);
                 border: 1px solid var(--muted-border-color);
+                list-style-type: none;
             }
             .post-title {
                 margin-top: 0;
@@ -155,16 +156,15 @@ def get():
 
 # Helper function to generate HTML for posts
 def generate_posts_html(post_list):
-    posts_html = []
+    list_items = []
     for post in post_list[:500]:
         url = post.url if post.url else f"https://news.ycombinator.com/item?id={post.id}"
-        # make it a ul > li, ai!
-        post_html = Article(
+        list_item = Li(
             A(post.title, href=url, target="_blank"),
             cls="post-item"
         )
-        posts_html.append(post_html)
-    return posts_html
+        list_items.append(list_item)
+    return list_items
 
 # Route to handle the ranking request
 @rt('/rank')
@@ -190,7 +190,7 @@ async def post(bio: str):
     posts_html = generate_posts_html(ranked_posts)
     
     # Return the ranked posts
-    return Div(*posts_html)
+    return Ul(*posts_html)
 
 # Route to refresh HN data
 @rt('/refresh')
