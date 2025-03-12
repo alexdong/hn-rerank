@@ -67,10 +67,9 @@ single page website for this. Here is a description of the web page:
 - DO NOT try ... except ... for error handling. Just let the program crash.
 - DO NOT attempt to make the code production ready. Just make it work.
 - DO NOT generate documentation or comments unless it's necessary.
-- DO use `ruff` for type checking and `pyright` for static type checking.
 - DO break the code into small .py files and use `__main__` block to test each
   one individually.
-- DO produce `Makefile` to run the linter, code and deploy to railway[5].
+- DO produce `Makefile` to run `uv run main.py` by default and `make deploy` will deploy to railway[5].
 
 
 
