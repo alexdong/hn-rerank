@@ -9,11 +9,21 @@ from traits import extract_traits
 from ranking import rank_posts
 from post import Post
 
-# Initialize FastHTML app with WebSocket support
-app, rt = fast_app(exts='ws')
-
 # Global state to store posts
 posts: List[Post] = []
+
+# Define startup function
+async def startup():
+    global posts
+    try:
+        posts = await collect_hn_data()
+        print("[INFO] Initial HN data loaded successfully")
+    except Exception as e:
+        print(f"[ERROR] Failed to load initial HN data: {str(e)}")
+        posts = []
+
+# Initialize FastHTML app with WebSocket support and startup function
+app, rt = fast_app(exts='ws', on_startup=[startup])
 
 # Main route for the application
 @rt('/')
@@ -203,16 +213,7 @@ async def post():
     except Exception as e:
         return f"Error refreshing data: {str(e)}"
 
-# Initial data loading on startup
-@app.on_startup
-async def startup():
-    global posts
-    try:
-        posts = await collect_hn_data()
-        print("[INFO] Initial HN data loaded successfully")
-    except Exception as e:
-        print(f"[ERROR] Failed to load initial HN data: {str(e)}")
-        posts = []
+# No replacement needed - we moved this code to before app initialization
 
 # Start the server
 if __name__ == "__main__":
