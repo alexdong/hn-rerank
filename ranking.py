@@ -44,6 +44,7 @@ def rank_posts(posts: List[Post], weighted_embeddings: List[Tuple[np.ndarray, fl
         
         # Multiply the similarity score by the HN score
         # This will boost posts that have both high relevance and high community interest
+        # Take a square root to dampen the effect of the HN score, ai!
         combined_score = final_score * hn_score
         
         scored_posts.append((post, combined_score))
