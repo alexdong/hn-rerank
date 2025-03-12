@@ -158,9 +158,9 @@ def generate_posts_html(post_list):
     posts_html = []
     for post in post_list[:500]:
         url = post.url if post.url else f"https://news.ycombinator.com/item?id={post.id}"
+        # make it a ul > li, ai!
         post_html = Article(
-            H3(A(post.title, href=url, target="_blank"), cls="post-title"),
-            P(f"Score: {post.score}", cls="post-score"),
+            A(post.title, href=url, target="_blank"),
             cls="post-item"
         )
         posts_html.append(post_html)
