@@ -1,0 +1,112 @@
+
+# 2025-03-12 10:44:12.488862
++N
+
+# 2025-03-12 10:44:30.173896
++/help
+
+# 2025-03-12 10:44:35.878444
++/map-refresh
+
+# 2025-03-12 10:44:40.340802
++/add models.py
+
+# 2025-03-12 10:53:43.180521
++N
+
+# 2025-03-12 10:54:35.617385
++/ask shall we be more explicit about the embedding's data type? i.e. instead of [], np.array? will it become a problem to Pydantic and serialise/deserialise with json?
+
+# 2025-03-12 10:57:17.333755
++/ask that's excellent. now, neither `url`, nor `embedding` should be `Optional`. Further, just crash the code if embedding failed etc. REMEMBER: keep the code simple. don't use too many try ... except ...
+
+# 2025-03-12 10:58:30.437882
++much better. please go ahead and change the code. add __main__ to embedding.py so I can test it.
+
+# 2025-03-12 11:01:25.911062
++rename models.py to posts.py
+
+# 2025-03-12 11:02:22.494392
++/add posts.py
+
+# 2025-03-12 11:02:29.273431
++/drop models.py
+
+# 2025-03-12 11:02:35.791468
++/add embedding.py
+
+# 2025-03-12 11:05:04.512177
++!uv run posts.py
+
+# 2025-03-12 11:05:10.271967
++What's wrong? Fix
+
+# 2025-03-12 11:07:14.523893
++n
+
+# 2025-03-12 11:50:34.092983
++/commit
+
+# 2025-03-12 11:59:18.438611
++/add personalise.py
+
+# 2025-03-12 12:01:53.730728
++/ask can you look at the system prompt and see if we can improve it more? 
+
+# 2025-03-12 12:03:18.622387
++/ask yes, this is good but this is the user prompt. I want your input on the "system" prompt! A role that better captures the job.
+
+# 2025-03-12 12:04:40.508126
++/ask what's a good value for the temperature?
+
+# 2025-03-12 12:29:22.987564
++/add traits.py
+
+# 2025-03-12 12:29:26.693958
++/drop personalise.py
+
+# 2025-03-12 12:43:08.995789
++/add ranking.py
+
+# 2025-03-12 12:45:48.396312
++n
+
+# 2025-03-12 12:49:08.247066
++I'd like to add a new function call "extract_traits(bio:str) -> [Tuple[np.ndarray, float]]". This function will save the result as bio_[sha32].json; if the bio's shar32 matches a file on disk, return the existing result rather than do it again; otherwise, look up the embeddings and save the file to disk. 
+
+# 2025-03-12 12:50:52.366357
++/add config.py
+
+# 2025-03-12 12:51:09.325405
++can you rewrite traits.py using the constants already defined in the config.py file?
+
+# 2025-03-12 13:04:52.141702
++/add *.py
+
+# 2025-03-12 13:04:58.077089
++/add *.txt
+
+# 2025-03-12 13:07:02.823600
++/ask please refer to "4. Website Design" in README.md file and create the website using fasthtml. Keep all routes in main.py. Make sure you refer to `fasthtml-ctx.txt` and use the right paradigm. Give me an implementation plan.
+
+# 2025-03-12 13:10:11.001102
++ok. Go for it. 
+
+# 2025-03-12 13:18:06.116930
++n
+
+# 2025-03-12 13:19:10.114174
++/ask now, how do i run it? `uv run main.py`?
+
+# 2025-03-12 13:19:37.512102
++/drop config.py embedding.py fetch.py post.py ranking.py traits.py
+
+# 2025-03-12 13:20:03.096495
++Traceback (most recent call last):
++  File "/Users/alexdong/Projects/hn-rerank/main.py", line 207, in <module>
++    @app.on_startup
++     ^^^^^^^^^^^^^^
++AttributeError: 'FastHTML' object has no attribute 'on_startup'
+
+# 2025-03-12 13:36:55.758436
++!make lint
